@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GodotLineCollection - Godot 4.6 关卡集合</title>
+  <link rel="icon" type="image/png" href="gc/Export.icon.png">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&family=Inter:wght@300;400;600;700&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Noto Sans SC', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #0a0a0f;
+      color: #e0e0e0;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Animated background */
+    .bg-grid {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image:
+        linear-gradient(rgba(79, 192, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(79, 192, 255, 0.05) 1px, transparent 1px);
+      background-size: 60px 60px;
+      z-index: -2;
+      animation: gridShift 8s linear infinite;
+    }
+
+    @keyframes gridShift {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(60px, 60px); }
+    }
+
+    .bg-glow {
+      position: fixed;
+      top: -30%;
+      left: -10%;
+      width: 60%;
+      height: 80%;
+      background: radial-gradient(ellipse, rgba(79, 192, 255, 0.08) 0%, transparent 70%);
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    .bg-glow-2 {
+      position: fixed;
+      bottom: -20%;
+      right: -10%;
+      width: 50%;
+      height: 60%;
+      background: radial-gradient(ellipse, rgba(139, 92, 246, 0.06) 0%, transparent 70%);
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    /* Hero section */
+    .hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 85vh;
+      padding: 2rem;
+      text-align: center;
+      position: relative;
+    }
+
+    .hero-icon {
+      width: 96px;
+      height: 96px;
+      border-radius: 24px;
+      margin-bottom: 2rem;
+      box-shadow: 0 0 40px rgba(79, 192, 255, 0.2);
+      border: 1px solid rgba(79, 192, 255, 0.15);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .hero-icon:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 60px rgba(79, 192, 255, 0.35);
+    }
+
+    .hero h1 {
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      font-weight: 900;
+      background: linear-gradient(135deg, #ffffff 0%, #4fc0ff 50%, #8b5cf6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+    }
+
+    .hero .subtitle {
+      font-size: clamp(1rem, 2vw, 1.3rem);
+      color: #8888aa;
+      font-weight: 300;
+      margin-bottom: 0.5rem;
+      letter-spacing: 0.05em;
+    }
+
+    .hero .version {
+      font-size: 0.85rem;
+      color: #4fc0ff;
+      background: rgba(79, 192, 255, 0.1);
+      padding: 0.25rem 1rem;
+      border-radius: 20px;
+      border: 1px solid rgba(79, 192, 255, 0.15);
+      display: inline-block;
+      margin-bottom: 2.5rem;
+      font-family: 'Inter', monospace;
+    }
+
+    .hero p {
+      font-size: 1.1rem;
+      color: #a0a0c0;
+      max-width: 600px;
+      line-height: 1.8;
+      margin-bottom: 3rem;
+      font-weight: 300;
+    }
+
+    /* CTA Buttons */
+    .cta-group {
+      display: flex;
+      gap: 1.2rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.9rem 2.2rem;
+      border-radius: 14px;
+      font-size: 1.05rem;
+      font-weight: 600;
+      font-family: 'Noto Sans SC', sans-serif;
+      text-decoration: none;
+      transition: all 0.25s ease;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #4fc0ff 0%, #3a8fd4 100%);
+      color: #fff;
+      box-shadow: 0 4px 20px rgba(79, 192, 255, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 30px rgba(79, 192, 255, 0.45);
+    }
+
+    .btn-primary:active {
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.06);
+      color: #c0c0e0;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.10);
+      border-color: rgba(79, 192, 255, 0.3);
+      transform: translateY(-3px);
+      color: #fff;
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: #a0a0c0;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .btn-outline:hover {
+      border-color: rgba(79, 192, 255, 0.3);
+      color: #4fc0ff;
+      transform: translateY(-2px);
+    }
+
+    .btn .icon {
+      font-size: 1.2rem;
+    }
+
+    /* Features section */
+    .features {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 4rem 2rem 5rem;
+    }
+
+    .features h2 {
+      text-align: center;
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 3rem;
+      color: #f0f0ff;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .feature-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 16px;
+      padding: 1.8rem 1.5rem;
+      transition: all 0.3s ease;
+    }
+
+    .feature-card:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(79, 192, 255, 0.15);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .feature-icon {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      display: block;
+    }
+
+    .feature-card h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 0.6rem;
+      color: #e0e0ff;
+    }
+
+    .feature-card p {
+      font-size: 0.9rem;
+      color: #8080a0;
+      line-height: 1.6;
+      font-weight: 300;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 2rem;
+      color: #606080;
+      font-size: 0.85rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    footer a {
+      color: #4fc0ff;
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .hero {
+        min-height: 70vh;
+        padding: 1.5rem;
+      }
+      .btn {
+        width: 100%;
+        justify-content: center;
+      }
+      .features {
+        padding: 3rem 1.2rem;
+      }
+    }
+
+    /* Floating particles */
+    .particle {
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: -1;
+      opacity: 0.3;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background -->
+  <div class="bg-grid"></div>
+  <div class="bg-glow"></div>
+  <div class="bg-glow-2"></div>
+
+  <!-- Hero -->
+  <section class="hero">
+    <img class="hero-icon" src="gc/Export.icon.png" alt="GodotLineCollection Logo">
+    <h1>GodotLineCollection</h1>
+    <p class="subtitle">Godot 4.6 游戏关卡集合 / 启动器</p>
+    <span class="version">MIT License · Open Source</span>
+    <p>
+      动态加载用户关卡 · 云端存档同步 · 内置 PCK 导出与管理工具
+    </p>
+    <div class="cta-group">
+      <a href="gc/Export.html" class="btn btn-primary">
+        <span class="icon">▶</span> 开始游戏
+      </a>
+      <a href="https://github.com/meny2333/GodotLineCollection" target="_blank" class="btn btn-secondary">
+        <span class="icon">⎇</span> GitHub
+      </a>
+      <a href="https://github.com/meny2333/GodotLineCollection/blob/main/AGENTS.md" target="_blank" class="btn btn-outline">
+        <span class="icon">📖</span> 使用文档
+      </a>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="features">
+    <h2>✨ 特性</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <span class="feature-icon">🎮</span>
+        <h3>动态加载</h3>
+        <p>通过 PCK 文件动态加载用户关卡，无限扩展游戏内容</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">☁️</span>
+        <h3>云端存档</h3>
+        <p>使用 GAS SDK 实现云端存档同步，随时随地继续游戏</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🎯</span>
+        <h3>关卡管理</h3>
+        <p>内置 PCK 导出与管理工具，轻松创建和分享你的关卡</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>
+      <a href="https://github.com/meny2333/GodotLineCollection" target="_blank">GodotLineCollection</a>
+       · 以
+      <a href="https://github.com/meny2333/GodotLineCollection/blob/main/LICENSE" target="_blank">MIT License</a>
+       开源
+    </p>
+  </footer>
+
+</body>
+</html>
