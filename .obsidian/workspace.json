@@ -4,17 +4,21 @@
     "type": "split",
     "children": [
       {
-        "id": "143e5a6ba8356a7a",
+        "id": "f02571296ab004ce",
         "type": "tabs",
         "children": [
           {
-            "id": "199851695b43a475",
+            "id": "41ddd9bdd424e166",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "GodotLine架构.md",
+                "mode": "preview",
+                "source": false
+              },
               "icon": "lucide-file",
-              "title": "新标签页"
+              "title": "GodotLine架构"
             }
           }
         ]
@@ -90,6 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
+                "file": "GodotLine架构.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -99,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "反向链接"
+              "title": "GodotLine架构 的反向链接列表"
             }
           },
           {
@@ -108,11 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
+                "file": "GodotLine架构.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "出链"
+              "title": "GodotLine架构 的出链列表"
             }
           },
           {
@@ -150,12 +156,13 @@
             "state": {
               "type": "outline",
               "state": {
+                "file": "GodotLine架构.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "大纲"
+              "title": "GodotLine架构 的大纲"
             }
           },
           {
@@ -173,7 +180,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 300,
+    "collapsed": true
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -188,7 +196,7 @@
       "obsidian-git:Open Git source control": false
     }
   },
-  "active": "cb7d2c874d17286e",
+  "active": "41ddd9bdd424e166",
   "lastOpenFiles": [
     "Excalidraw/Drawing 2026-06-07 10.40.54.excalidraw.md",
     "GodotLine架构.md",
