@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>共舞的线 - Dancing Line Multiplay</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;700;900&display=swap');
+
+  :root {
+    --bg: #e0e5ec;
+    --fg: #f0f2f5;
+    --muted: #d1d9e6;
+    --text: #2d3436;
+    --text-muted: #4a5568;
+    --accent-blue: #4a7cff;
+    --accent-orange: #ff8c42;
+    --accent-red: #ff4757;
+    --shadow-dark: #babecc;
+    --shadow-light: #ffffff;
+    --shadow-deep: #a3b1c6;
+    --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+    --neu-card: 8px 8px 16px var(--shadow-dark), -8px -8px 16px var(--shadow-light);
+    --neu-float: 12px 12px 24px var(--shadow-dark), -12px -12px 24px var(--shadow-light), inset 1px 1px 0 rgba(255,255,255,0.5);
+    --neu-pressed: inset 6px 6px 12px var(--shadow-dark), inset -6px -6px 12px var(--shadow-light);
+    --neu-recessed: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light);
+    --neu-sharp: 4px 4px 8px rgba(0,0,0,0.15), -1px -1px 1px rgba(255,255,255,0.8);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    min-height: 100vh;
+    background: var(--bg);
+    font-family: 'Inter', 'Noto Sans SC', sans-serif;
+    overflow-x: hidden;
+    position: relative;
+    color: var(--text);
+  }
+
+  .stars-canvas {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  }
+
+  .page-wrapper {
+    position: relative; z-index: 1;
+    max-width: 1080px; margin: 0 auto; padding: 24px 28px;
+    min-height: 100vh; display: flex; flex-direction: column;
+    animation: pageEnter 800ms var(--ease-smooth) both;
+  }
+
+  @keyframes pageEnter {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Top Bar ── */
+  .top-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 0 28px;
+    animation: slideDown 600ms var(--ease-spring) 100ms both;
+  }
+
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .btn-back {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--bg); border: none; border-radius: 12px;
+    padding: 10px 18px; font-size: 13px; font-weight: 600; color: var(--text-muted); cursor: pointer;
+    font-family: inherit; transition: all 200ms var(--ease-smooth);
+    box-shadow: var(--neu-sharp);
+    letter-spacing: 0.3px;
+  }
+  .btn-back:hover {
+    color: var(--text);
+    box-shadow: var(--neu-float);
+    transform: translateY(-1px);
+  }
+  .btn-back:active {
+    box-shadow: var(--neu-pressed);
+    transform: translateY(1px);
+  }
+  .btn-back svg { width: 16px; height: 16px; }
+
+  /* ── Logo ── */
+  .logo {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    cursor: default;
+    animation: logoPulse 4s ease-in-out infinite;
+  }
+
+  @keyframes logoPulse {
+    0%, 100% { filter: brightness(1); }
+    50% { filter: brightness(1.05); }
+  }
+
+  .logo-en {
+    font-family: 'Inter', sans-serif; font-weight: 900; font-size: 20px;
+    letter-spacing: 3px;
+    display: flex; gap: 0;
+  }
+  .logo-en .char {
+    display: inline-block;
+    transition: transform 300ms var(--ease-spring), color 300ms;
+  }
+  .logo-en .char:hover {
+    transform: translateY(-4px) scale(1.15);
+  }
+  .logo-en .highlight { color: var(--accent-orange); }
+  .logo-en .normal { color: var(--accent-blue); }
+
+  .logo-cn {
+    font-size: 13px; font-weight: 700; color: var(--accent-orange);
+    display: flex; align-items: center; gap: 8px;
+    letter-spacing: 2px;
+  }
+  .logo-wave {
+    display: inline-block; width: 22px; height: 10px; overflow: visible;
+  }
+  .logo-wave svg path {
+    animation: waveDash 2s ease-in-out infinite;
+  }
+  @keyframes waveDash {
+    0%, 100% { stroke-dashoffset: 0; }
+    50% { stroke-dashoffset: -8; }
+  }
+
+  .user-btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: var(--bg); border: none; border-radius: 12px;
+    padding: 10px 16px; font-size: 13px; font-weight: 600; color: var(--text-muted); cursor: pointer;
+    font-family: inherit; transition: all 200ms var(--ease-smooth);
+    box-shadow: var(--neu-sharp);
+    letter-spacing: 0.3px;
+  }
+  .user-btn:hover {
+    color: var(--text);
+    box-shadow: var(--neu-float);
+    transform: translateY(-1px);
+  }
+  .user-avatar {
+    width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+    background: conic-gradient(from 0deg, #ff4757, #4a7cff, #6c5ce7, #ff4757);
+    box-shadow: 0 0 0 2px var(--bg), 0 0 8px rgba(74, 124, 255, 0.3);
+    animation: avatarRotate 8s linear infinite;
+  }
+  @keyframes avatarRotate {
+    to { filter: hue-rotate(360deg); }
+  }
+
+  /* ── Main Content ── */
+  .main-content {
+    flex: 1; display: flex; gap: 24px; align-items: stretch;
+    flex-wrap: wrap; justify-content: center;
+  }
+
+  /* ── Info Panel ── */
+  .info-panel {
+    background: var(--bg);
+    border-radius: 20px; padding: 24px 28px;
+    box-shadow: var(--neu-card);
+    min-width: 200px; flex: 0 0 auto;
+    animation: cardEnter 600ms var(--ease-spring) 200ms both;
+    position: relative; overflow: hidden;
+  }
+  .info-panel::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--accent-blue), var(--accent-orange));
+    border-radius: 20px 20px 0 0;
+  }
+
+  @keyframes cardEnter {
+    from { opacity: 0; transform: translateY(24px) scale(0.96); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .info-panel h3 {
+    font-size: 11px; font-weight: 700; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 2.5px; margin-bottom: 18px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .info-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 0; gap: 16px;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+    transition: background 200ms;
+  }
+  .info-row:last-child { border-bottom: none; }
+  .info-row:hover { background: rgba(0,0,0,0.02); border-radius: 6px; margin: 0 -8px; padding-left: 8px; padding-right: 8px; }
+  .info-label {
+    font-size: 12px; color: var(--text-muted); font-weight: 500;
+    white-space: nowrap;
+  }
+  .info-value {
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    color: var(--text); font-weight: 600;
+    text-align: right;
+  }
+  .info-value.live {
+    background: linear-gradient(135deg, #00c853, #69f0ae);
+    color: #fff; padding: 3px 12px; border-radius: 20px; font-size: 10px;
+    font-weight: 700; letter-spacing: 1px;
+    box-shadow: 0 0 10px 2px rgba(0, 200, 83, 0.25);
+    animation: livePulse 2s ease-in-out infinite;
+  }
+  @keyframes livePulse {
+    0%, 100% { box-shadow: 0 0 10px 2px rgba(0, 200, 83, 0.25); }
+    50% { box-shadow: 0 0 16px 4px rgba(0, 200, 83, 0.4); }
+  }
+
+  /* ── Section ── */
+  .section {
+    flex: 1; min-width: 280px; max-width: 400px;
+    animation: cardEnter 600ms var(--ease-spring) both;
+  }
+  .section:nth-child(2) { animation-delay: 350ms; }
+  .section:nth-child(3) { animation-delay: 500ms; }
+
+  .section-title {
+    font-size: 16px; font-weight: 900; color: var(--text);
+    margin-bottom: 20px; text-align: center;
+    position: relative; letter-spacing: 1px;
+  }
+  .section-title::after {
+    content: ''; position: absolute; bottom: -8px; left: 50%;
+    transform: translateX(-50%); width: 36px; height: 3px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--accent-blue), var(--accent-orange));
+  }
+
+  /* ── Person Card ── */
+  .person-card {
+    display: flex; align-items: center; gap: 16px;
+    background: var(--bg);
+    border-radius: 18px; padding: 16px 20px; margin-bottom: 14px;
+    box-shadow: var(--neu-card);
+    transition: all 300ms var(--ease-spring);
+    cursor: default; position: relative; overflow: hidden;
+  }
+  .person-card::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(74,124,255,0.03), rgba(255,140,66,0.03));
+    opacity: 0; transition: opacity 300ms;
+  }
+  .person-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--neu-float);
+  }
+  .person-card:hover::before { opacity: 1; }
+  .person-card:active {
+    transform: translateY(-1px);
+    box-shadow: var(--neu-card);
+  }
+
+  .person-avatar {
+    width: 54px; height: 54px; border-radius: 16px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden; position: relative;
+    transition: transform 300ms var(--ease-spring);
+  }
+  .person-card:hover .person-avatar {
+    transform: scale(1.08) rotate(3deg);
+  }
+
+  .person-info { flex: 1; position: relative; z-index: 1; }
+  .person-name {
+    font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 6px;
+    letter-spacing: 0.3px;
+  }
+  .person-role {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 10px; font-weight: 700; padding: 4px 12px;
+    border-radius: 20px; letter-spacing: 0.8px;
+    text-transform: uppercase;
+    transition: transform 200ms var(--ease-spring);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  }
+  .person-card:hover .person-role {
+    transform: scale(1.05);
+  }
+  .person-role.role-main {
+    background: linear-gradient(135deg, #4a7cff, #6c5ce7);
+    color: #fff;
+  }
+  .person-role.role-level {
+    background: linear-gradient(135deg, #ff8c42, #ff6b6b);
+    color: #fff;
+  }
+  .person-role.role-network {
+    background: linear-gradient(135deg, #00b894, #00cec9);
+    color: #fff;
+  }
+  .person-role.role-sponsor {
+    background: linear-gradient(135deg, #fdcb6e, #e17055);
+    color: #fff;
+  }
+
+  .role-icon { width: 11px; height: 11px; }
+
+  /* ── Character Avatars with CSS Art ── */
+  .avatar-sushi {
+    background: linear-gradient(135deg, #a29bfe, #fd79a8);
+    box-shadow: inset 3px 3px 6px rgba(0,0,0,0.15), inset -3px -3px 6px rgba(255,255,255,0.2);
+  }
+  .avatar-sushi::after { content: '🍣'; font-size: 26px; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2)); }
+
+  .avatar-quantumilk {
+    background: linear-gradient(135deg, #74b9ff, #0984e3);
+    box-shadow: inset 3px 3px 6px rgba(0,0,0,0.15), inset -3px -3px 6px rgba(255,255,255,0.2);
+  }
+  .avatar-quantumilk::after { content: '🧪'; font-size: 26px; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2)); }
+
+  .avatar-linecom {
+    background: linear-gradient(135deg, #e17055, #d63031);
+    box-shadow: inset 3px 3px 6px rgba(0,0,0,0.15), inset -3px -3px 6px rgba(255,255,255,0.2);
+  }
+  .avatar-linecom::after { content: '⚡'; font-size: 26px; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2)); }
+
+  .avatar-wanghzki {
+    background: linear-gradient(135deg, #fdcb6e, #e84393);
+    box-shadow: inset 3px 3px 6px rgba(0,0,0,0.15), inset -3px -3px 6px rgba(255,255,255,0.2);
+  }
+  .avatar-wanghzki::after { content: '🌟'; font-size: 26px; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2)); }
+
+  /* ── Sparkles ── */
+  .sparkle {
+    position: fixed; pointer-events: none; z-index: 0;
+    width: 4px; height: 4px;
+    background: radial-gradient(circle, rgba(255,255,255,0.95), rgba(255,255,255,0.1), transparent);
+    border-radius: 50%;
+    animation: sparklePulse 4s ease-in-out infinite;
+  }
+  @keyframes sparklePulse {
+    0%, 100% { opacity: 0.15; transform: scale(0.6); }
+    50% { opacity: 1; transform: scale(1.3); }
+  }
+
+  /* ── Shooting Stars ── */
+  .shooting-star {
+    position: fixed; pointer-events: none; z-index: 0;
+    width: 80px; height: 1px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.8), transparent);
+    border-radius: 1px;
+    animation: shoot 1.2s linear forwards;
+    transform-origin: left center;
+  }
+  @keyframes shoot {
+    0% { opacity: 0; transform: translateX(0) scaleX(0); }
+    10% { opacity: 1; transform: translateX(0) scaleX(1); }
+    100% { opacity: 0; transform: translateX(200px) scaleX(0.3); }
+  }
+
+  /* ── Divider Line (decorative) ── */
+  .content-divider {
+    width: 1px; align-self: stretch; margin: 0 4px;
+    background: linear-gradient(to bottom, transparent, var(--muted) 20%, var(--muted) 80%, transparent);
+    opacity: 0.5;
+  }
+
+  /* ── Footer ── */
+  .page-footer {
+    text-align: center; padding: 28px 0 8px;
+    font-size: 11px; color: var(--text-muted); font-weight: 500;
+    letter-spacing: 0.5px; opacity: 0.6;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 780px) {
+    .main-content { flex-direction: column; align-items: center; }
+    .info-panel { width: 100%; max-width: 400px; }
+    .section { max-width: 400px; width: 100%; }
+    .content-divider { display: none; }
+  }
+
+  @media (max-width: 480px) {
+    .page-wrapper { padding: 16px; }
+    .logo-en { font-size: 16px; letter-spacing: 2px; }
+    .logo-cn { font-size: 11px; }
+  }
+
+  /* ── Reduced Motion ── */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<canvas class="stars-canvas" id="starsCanvas"></canvas>
+
+<div class="page-wrapper">
+
+  <div class="top-bar">
+    <button class="btn-back" aria-label="返回上一页">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M15 18l-6-6 6-6"/>
+      </svg>
+      返回
+    </button>
+
+    <div class="logo" role="banner">
+      <div class="logo-en" aria-label="Dancing Line Multiplay">
+        <span class="char normal">D</span><span class="char normal">A</span><span class="char normal">N</span><span class="char normal">C</span><span class="char normal">I</span><span class="char normal">N</span><span class="char normal">G</span><span class="char normal" style="margin-left:6px">L</span><span class="char normal">I</span><span class="char normal">N</span><span class="char normal">E</span><span class="char highlight" style="margin-left:6px">M</span><span class="char normal">U</span><span class="char normal">L</span><span class="char highlight">T</span><span class="char normal">I</span><span class="char normal">P</span><span class="char normal">L</span><span class="char normal">A</span><span class="char normal">Y</span>
+      </div>
+      <div class="logo-cn">
+        <span class="logo-wave"><svg viewBox="0 0 30 10"><path d="M0 5 Q7.5 0 15 5 Q22.5 10 30 5" fill="none" stroke="#4a7cff" stroke-width="1.8" stroke-dasharray="4 2"/></svg></span>
+        共舞的线
+        <span class="logo-wave"><svg viewBox="0 0 30 10"><path d="M0 5 Q7.5 0 15 5 Q22.5 10 30 5" fill="none" stroke="#ff8c42" stroke-width="1.8" stroke-dasharray="4 2"/></svg></span>
+      </div>
+    </div>
+
+    <button class="user-btn" aria-label="用户 meny">
+      meny
+      <div class="user-avatar"></div>
+    </button>
+  </div>
+
+  <div class="main-content">
+
+    <div class="info-panel" role="region" aria-label="版本信息">
+      <h3>Version Info</h3>
+      <div class="info-row">
+        <span class="info-label">游戏版本</span>
+        <span class="info-value">4.1.1 (Patch)</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">构建号</span>
+        <span class="info-value">2603013</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">当前平台</span>
+        <span class="info-value">iPadOS 18.7.2</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">版本类型</span>
+        <span class="info-value live">LIVE</span>
+      </div>
+    </div>
+
+    <div class="content-divider" aria-hidden="true"></div>
+
+    <div class="section" role="region" aria-label="主制作">
+      <div class="section-title">主制作</div>
+
+      <div class="person-card">
+        <div class="person-avatar avatar-sushi" aria-hidden="true"></div>
+        <div class="person-info">
+          <div class="person-name">筱夕Sushi</div>
+          <span class="person-role role-main">
+            <svg class="role-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="8" cy="8" r="3"/><circle cx="16" cy="16" r="3"/><line x1="10.5" y1="10.5" x2="13.5" y2="13.5"/></svg>
+            主制作
+          </span>
+        </div>
+      </div>
+
+      <div class="person-card">
+        <div class="person-avatar avatar-quantumilk" aria-hidden="true"></div>
+        <div class="person-info">
+          <div class="person-name">Quantumilk</div>
+          <span class="person-role role-level">
+            <svg class="role-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M4 20l8-8m0 0l3-3m-3 3l-3-3m3 3l3 3"/></svg>
+            关卡维护
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section" role="region" aria-label="赞助">
+      <div class="section-title">赞助</div>
+
+      <div class="person-card">
+        <div class="person-avatar avatar-linecom" aria-hidden="true"></div>
+        <div class="person-info">
+          <div class="person-name">澪空 Linecom</div>
+          <span class="person-role role-network">
+            <svg class="role-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12.5a7 7 0 0114 0" stroke-dasharray="2 3"/><circle cx="12" cy="8" r="1.5" fill="currentColor" stroke="none"/><path d="M8 16.5a5 5 0 018 0" stroke-dasharray="2 3"/></svg>
+            网络运营
+          </span>
+        </div>
+      </div>
+
+      <div class="person-card">
+        <div class="person-avatar avatar-wanghzki" aria-hidden="true"></div>
+        <div class="person-info">
+          <div class="person-name">WangHZKi</div>
+          <span class="person-role role-sponsor">
+            <svg class="role-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.35 7.22H22l-5.9 4.28 2.25 6.92L12 16.14 5.65 20.42l2.25-6.92L2 9.22h7.65z"/></svg>
+            赞助
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="page-footer">Dancing Line Multiplay v4.1.1 &middot; Built with ♥</div>
+</div>
+
+<script>
+(function() {
+  const canvas = document.getElementById('starsCanvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, stars = [], nebulae = [];
+
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+
+  function initStars() {
+    stars = [];
+    nebulae = [];
+    const density = (W * H) / 3500;
+    for (let i = 0; i < density; i++) {
+      stars.push({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        r: Math.random() * 1.6 + 0.2,
+        alpha: Math.random() * 0.4 + 0.15,
+        phase: Math.random() * Math.PI * 2,
+        speed: Math.random() * 0.008 + 0.003,
+        twinkle: Math.random() > 0.92,
+      });
+    }
+    for (let i = 0; i < 4; i++) {
+      nebulae.push({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        rx: Math.random() * 200 + 100,
+        ry: Math.random() * 150 + 80,
+        hue: Math.random() * 60 + 200,
+        alpha: Math.random() * 0.03 + 0.015,
+        phase: Math.random() * Math.PI * 2,
+      });
+    }
+  }
+
+  function draw(t) {
+    ctx.clearRect(0, 0, W, H);
+
+    for (const n of nebulae) {
+      const ox = Math.sin(t * 0.0003 + n.phase) * 20;
+      const oy = Math.cos(t * 0.0002 + n.phase) * 15;
+      const grad = ctx.createRadialGradient(n.x + ox, n.y + oy, 0, n.x + ox, n.y + oy, n.rx);
+      grad.addColorStop(0, `hsla(${n.hue}, 60%, 70%, ${n.alpha})`);
+      grad.addColorStop(1, 'transparent');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.ellipse(n.x + ox, n.y + oy, n.rx, n.ry, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    for (const s of stars) {
+      const a = s.alpha + Math.sin(t * s.speed + s.phase) * (s.twinkle ? 0.35 : 0.15);
+      const r = s.r + (s.twinkle ? Math.sin(t * s.speed * 2 + s.phase) * 0.4 : 0);
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, Math.max(0.1, r), 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,255,255,${Math.max(0, Math.min(1, a))})`;
+      ctx.fill();
+      if (s.twinkle && a > 0.4) {
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, r * 3, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255,255,255,${a * 0.08})`;
+        ctx.fill();
+      }
+    }
+
+    requestAnimationFrame(draw);
+  }
+
+  window.addEventListener('resize', () => { resize(); initStars(); });
+  resize(); initStars(); requestAnimationFrame(draw);
+})();
+
+(function() {
+  for (let i = 0; i < 20; i++) {
+    const el = document.createElement('div');
+    el.className = 'sparkle';
+    el.style.left = Math.random() * 100 + '%';
+    el.style.top = Math.random() * 100 + '%';
+    el.style.animationDelay = (Math.random() * 4) + 's';
+    el.style.animationDuration = (3 + Math.random() * 3) + 's';
+    const size = Math.random() * 5 + 2;
+    el.style.width = el.style.height = size + 'px';
+    document.body.appendChild(el);
+  }
+})();
+
+(function() {
+  function createShootingStar() {
+    const el = document.createElement('div');
+    el.className = 'shooting-star';
+    el.style.left = (Math.random() * 80 + 10) + '%';
+    el.style.top = (Math.random() * 40) + '%';
+    el.style.transform = `rotate(${30 + Math.random() * 20}deg)`;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 1400);
+  }
+  setInterval(() => {
+    if (Math.random() > 0.6) createShootingStar();
+  }, 4000);
+  setTimeout(createShootingStar, 2000);
+})();
+</script>
+
+</body>
+</html>
