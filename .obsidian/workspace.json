@@ -4,11 +4,11 @@
     "type": "split",
     "children": [
       {
-        "id": "fa8f29ad5e216676",
+        "id": "143e5a6ba8356a7a",
         "type": "tabs",
         "children": [
           {
-            "id": "5ea07b3d298f9b0e",
+            "id": "199851695b43a475",
             "type": "leaf",
             "state": {
               "type": "empty",
@@ -74,7 +74,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 200
   },
   "right": {
     "id": "af945db8cf32e566",
@@ -93,7 +93,7 @@
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
-                "showSearch": false,
+                "showSearch": true,
                 "searchQuery": "",
                 "backlinkCollapsed": false,
                 "unlinkedCollapsed": true
@@ -188,6 +188,14 @@
       "obsidian-git:Open Git source control": false
     }
   },
-  "active": "5ea07b3d298f9b0e",
-  "lastOpenFiles": []
+  "active": "cb7d2c874d17286e",
+  "lastOpenFiles": [
+    "Excalidraw/Drawing 2026-06-07 10.40.54.excalidraw.md",
+    "GodotLine架构.md",
+    "Excalidraw",
+    "未命名.base",
+    "gc/Export.icon.png",
+    "gc/Export.apple-touch-icon.png",
+    "gc/Export.png"
+  ]
 }
